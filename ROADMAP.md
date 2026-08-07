@@ -81,7 +81,8 @@ the working agreement (one step per turn, model choice, `/cost` habits).
 1. **Scaffold** — Vite + React + TS + Tailwind + shadcn/ui, deployed to
    Vercel. Test: blank branded shell loads at a public URL, on both
    desktop and phone widths. ✅ **Done.**
-2. **Calculator UI, part 1: Property + Pricing inputs** — evaluator name,
+2. **Calculator UI, part 1: Property + Pricing inputs** ✅ **Done.** —
+   evaluator name,
    date, address, sq ft, units, occupied, description, status (New /
    Under Contract / Passed / Closed), ARV, as-is value, repair cost,
    purchase price, hold months. Client-side only, no persistence yet.
