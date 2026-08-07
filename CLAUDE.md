@@ -13,6 +13,14 @@ checklist: `ROADMAP.md` in this repo.
 - Hosting: Vercel (static frontend).
 - No auth in v1 (unlisted URL) — see "Known Risks" in the plan file.
 
+## Gotcha: shadcn CLI + `@/` alias
+
+`npx shadcn@latest add <component>` in this repo writes files to a
+literal `./@/components/ui/...` directory instead of resolving the `@/`
+alias to `src/`. After every `shadcn add`, move the new files into
+`src/components/ui/` (or `src/lib/`) and `rm -rf ./@`. Check for this
+before assuming a newly added component is where the CLI claims.
+
 ## Commands
 
 - `npm run dev` — dev server
