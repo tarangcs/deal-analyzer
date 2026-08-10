@@ -98,12 +98,12 @@ the working agreement (one step per turn, model choice, `/cost` habits).
 3. **Financing Costs section** ✅ **Done.** — up to 3 mortgage/lien slots (amount,
    points, interest rate) with computed points cost, interest cost, and
    totals. Test against the $6,266.67 total financing figure.
-4. **Holding Costs section** — taxes, HOA, insurance, utilities (gas/
+4. **Holding Costs section** ✅ **Done.** — taxes, HOA, insurance, utilities (gas/
    water/electric/misc), misc — monthly + total-over-hold-period. Test
    against $387.50/mo, $775 total.
-5. **Buying + Selling Transaction Costs sections**. Test against
+5. **Buying + Selling Transaction Costs sections** ✅ **Done.** Test against
    $1,837.50 buying / $11,700 selling.
-6. **Deal Summary & ROI panel** — net profit, cost-per-sqft, down payment
+6. **Deal Summary & ROI panel** ✅ **Done.** — net profit, cost-per-sqft, down payment
    required, committed capital, Purchase+Rehab ROI, fully-loaded ROI, and
    a green/yellow/red deal-quality flag against a user-editable ROI
    threshold. Test: full end-to-end run of the sample deal matches all
