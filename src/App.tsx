@@ -1,10 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import type React from "react";
+import { Loader2Icon } from "lucide-react";
 import { PropertySection } from "@/components/deal-form/property-section";
 import { FinancingSection } from "@/components/deal-form/financing-section";
 import { HoldingSection } from "@/components/deal-form/holding-section";
 import { TransactionCostsSection } from "@/components/deal-form/transaction-costs-section";
 import { DealSummarySection } from "@/components/deal-form/deal-summary-section";
+import { NotesSection } from "@/components/deal-form/notes-section";
 import { SettingsDialog } from "@/components/deal-form/settings-dialog";
 import { DealsList } from "@/components/deals-list/deals-list";
 import { DealDetail } from "@/components/deals-list/deal-detail";
@@ -49,8 +51,7 @@ function App() {
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
   const [saveError, setSaveError] = useState<string | null>(null);
   // Set while editing an existing saved deal, so Save updates that row
-  // instead of creating a new one. Notes has no editable UI yet (Step
-  // 13) but is carried through so editing-and-resaving doesn't wipe it.
+  // instead of creating a new one.
   const [editingId, setEditingId] = useState<string | null>(null);
   const [notes, setNotes] = useState("");
 
@@ -283,15 +284,20 @@ function App() {
               }
             />
 
+            <NotesSection value={notes} onChange={setNotes} />
+
+            {saveStatus === "error" && (
+              <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive">
+                Couldn't save: {saveError ?? "unknown error"}
+              </div>
+            )}
+
             <div className="flex items-center justify-between rounded-lg border border-border bg-card p-4">
               <p className="text-sm text-muted-foreground">
-                {saveStatus === "saving" && "Saving…"}
                 {saveStatus === "saved" &&
                   (editingId
                     ? "Updated in the shared deals list."
                     : "Saved to the shared deals list.")}
-                {saveStatus === "error" &&
-                  `Couldn't save: ${saveError ?? "unknown error"}`}
                 {saveStatus === "idle" &&
                   (hasErrors
                     ? "Fill in the required fields above to save."
@@ -301,6 +307,9 @@ function App() {
                 onClick={handleSaveDeal}
                 disabled={hasErrors || saveStatus === "saving"}
               >
+                {saveStatus === "saving" && (
+                  <Loader2Icon className="size-4 animate-spin" />
+                )}
                 {saveStatus === "saving"
                   ? "Saving…"
                   : editingId

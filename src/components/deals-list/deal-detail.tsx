@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Loader2Icon } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -37,7 +38,7 @@ function Row({ label, value }: { label: string; value: string }) {
   );
 }
 
-type ActionStatus = "idle" | "working" | "error";
+type ActionStatus = "idle" | "archiving" | "deleting" | "error";
 
 export function DealDetail({
   record,
@@ -65,8 +66,10 @@ export function DealDetail({
     { label: "Misc. Mortgage", loan: deal.financing.miscMortgage },
   ].filter(({ loan }) => loan.amount !== "" && loan.amount !== 0);
 
+  const busy = status === "archiving" || status === "deleting";
+
   async function handleArchive() {
-    setStatus("working");
+    setStatus("archiving");
     setError(null);
     try {
       await archiveDeal(record.id, true);
@@ -78,7 +81,7 @@ export function DealDetail({
   }
 
   async function handleDelete() {
-    setStatus("working");
+    setStatus("deleting");
     setError(null);
     try {
       await deleteDeal(record.id, deleteReason.trim());
@@ -97,14 +100,13 @@ export function DealDetail({
           ← Back to Deals
         </Button>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={() => onEdit(record)}>
+          <Button variant="outline" onClick={() => onEdit(record)} disabled={busy}>
             Edit
           </Button>
-          <Button
-            variant="outline"
-            onClick={handleArchive}
-            disabled={status === "working"}
-          >
+          <Button variant="outline" onClick={handleArchive} disabled={busy}>
+            {status === "archiving" && (
+              <Loader2Icon className="size-4 animate-spin" />
+            )}
             Archive
           </Button>
           <Dialog
@@ -152,9 +154,12 @@ export function DealDetail({
                 <Button
                   variant="destructive"
                   onClick={handleDelete}
-                  disabled={!deleteReason.trim() || status === "working"}
+                  disabled={!deleteReason.trim() || busy}
                 >
-                  {status === "working" ? "Deleting…" : "Delete"}
+                  {status === "deleting" && (
+                    <Loader2Icon className="size-4 animate-spin" />
+                  )}
+                  {status === "deleting" ? "Deleting…" : "Delete"}
                 </Button>
               </DialogFooter>
             </DialogContent>

@@ -29,6 +29,19 @@ export function DealComparison({
     summary: summarizeDeal(toFullDeal(record)),
   }));
 
+  if (rows.length === 0) {
+    return (
+      <div className="space-y-6">
+        <Button variant="outline" onClick={onBack}>
+          ← Back to Deals
+        </Button>
+        <p className="text-sm text-muted-foreground">
+          Nothing selected to compare — go back and pick 2–3 deals first.
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <Button variant="outline" onClick={onBack}>

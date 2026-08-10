@@ -17,7 +17,11 @@
       "Bash(python3 -c \"import json,sys; [print\\(r['id']\\) for r in json.load\\(sys.stdin\\) if r['propertyAddress']=='500 Archive Test Ln, Editville']\")",
       "Bash(python3 -c \"import json,sys; [print\\(r['id']\\) for r in json.load\\(sys.stdin\\) if r['propertyAddress']=='600 Delete Test Blvd, Editville']\")",
       "Bash(node /Users/surya/gitsource/deal-analyzer/.check5.mjs)",
-      "Bash(curl -s https://deal-analyzer-app-1.vercel.app/assets/index-B_ELIseU.js)"
+      "Bash(curl -s https://deal-analyzer-app-1.vercel.app/assets/index-B_ELIseU.js)",
+      "Bash(curl -sL -X POST https://script.google.com/macros/s/AKfycbwqRJ-jeE4wUjVIVYNjBk2EMgbfGoz3e4JTHxcaNwcvFWQxDgPlA6XrITyX15PJIdklAA/exec -H 'Content-Type: text/plain' -d '{\"action\":\"delete\",\"id\":\"ea9e5399-cab4-4677-82f9-ba5b10202ae9\",\"reason\":\"test cleanup\"}')",
+      "Bash(python3 -c \"import json,sys; [print\\(r['id']\\) for r in json.load\\(sys.stdin\\) if r['propertyAddress']=='900 Notes Test Way, Testville']\")",
+      "Bash(curl -sL -X POST https://script.google.com/macros/s/AKfycbwqRJ-jeE4wUjVIVYNjBk2EMgbfGoz3e4JTHxcaNwcvFWQxDgPlA6XrITyX15PJIdklAA/exec -H 'Content-Type: text/plain' -d '{\"action\":\"delete\",\"id\":\"8ff6debd-44ea-469a-9739-d19208a68ff2\",\"reason\":\"test cleanup - Step 13 verification\"}')",
+      "Bash(python3 -c \"import json,sys; [print\\(r['evaluatorName'], r['propertyAddress']\\) for r in json.load\\(sys.stdin\\)]\")"
     ]
   }
 }

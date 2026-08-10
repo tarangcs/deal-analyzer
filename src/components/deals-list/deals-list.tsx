@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Loader2Icon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -142,17 +143,23 @@ export function DealsList({
       </div>
 
       {deals === null && !loadError && (
-        <p className="text-sm text-muted-foreground">Loading deals…</p>
+        <p className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Loader2Icon className="size-4 animate-spin" />
+          Loading deals…
+        </p>
       )}
       {loadError && (
-        <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive">
-          Couldn't load deals: {loadError}
+        <div className="flex items-center justify-between gap-3 rounded-lg border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive">
+          <span>Couldn't load deals: {loadError}</span>
+          <Button variant="outline" size="sm" onClick={load}>
+            Retry
+          </Button>
         </div>
       )}
       {deals !== null && !loadError && visible.length === 0 && (
         <p className="text-sm text-muted-foreground">
           {deals.length === 0
-            ? "No deals saved yet."
+            ? "No deals saved yet — head to the Calculator tab to evaluate and save your first one."
             : "No deals match your search."}
         </p>
       )}
