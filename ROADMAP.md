@@ -128,7 +128,7 @@ the working agreement (one step per turn, model choice, `/cost` habits).
 11. **Deal detail + Comparison view** ✅ **Done.** — open a saved deal, select 2–3
     deals to compare side by side. Test with 3 distinct saved sample
     deals.
-12. **Edit + Delete/Archive a saved deal** — from the detail view, edit
+12. **Edit + Delete/Archive a saved deal** ✅ **Done.** — from the detail view, edit
     any field and re-save (updates the existing Sheet row, doesn't
     duplicate it) or delete/archive it. Test: edit the sample deal's
     repair cost, confirm the Sheet row updates in place and MAO/ROI
