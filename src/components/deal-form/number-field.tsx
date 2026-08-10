@@ -1,5 +1,14 @@
+import { useRef, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { FieldLabel } from "./field-label";
+
+/** True for text a user might still be in the middle of typing toward a
+ * valid number — e.g. "0." on the way to "0.25", or a lone "-". Committing
+ * these early (as their Number() value) snaps the input back and eats the
+ * character the user just typed. */
+export function isPartialNumericInput(raw: string): boolean {
+  return raw === "-" || raw.endsWith(".");
+}
 
 export function NumberField({
   id,
@@ -22,6 +31,36 @@ export function NumberField({
   prefix?: string;
   suffix?: string;
 }) {
+  const [text, setText] = useState(() => (value === "" ? "" : String(value)));
+  // Tracks the value we last committed via onChange, so we can tell "the
+  // parent's value prop changed because of our own edit" (don't resync,
+  // that would clobber an in-progress "0.") apart from "it changed for
+  // some other reason" (e.g. a Clear Draft reset — do resync).
+  const lastCommitted = useRef(value);
+
+  if (value !== lastCommitted.current) {
+    lastCommitted.current = value;
+    setText(value === "" ? "" : String(value));
+  }
+
+  function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const raw = e.target.value;
+    setText(raw);
+
+    if (raw === "") {
+      lastCommitted.current = "";
+      onChange("");
+      return;
+    }
+    if (isPartialNumericInput(raw)) return;
+
+    const parsed = Number(raw);
+    if (!Number.isNaN(parsed)) {
+      lastCommitted.current = parsed;
+      onChange(parsed);
+    }
+  }
+
   return (
     <div className="space-y-1.5">
       <FieldLabel
@@ -42,16 +81,8 @@ export function NumberField({
           inputMode="decimal"
           aria-invalid={!!error}
           className={prefix ? "pl-6" : suffix ? "pr-14" : undefined}
-          value={value}
-          onChange={(e) => {
-            const raw = e.target.value;
-            if (raw === "") {
-              onChange("");
-              return;
-            }
-            const parsed = Number(raw);
-            if (!Number.isNaN(parsed)) onChange(parsed);
-          }}
+          value={text}
+          onChange={handleChange}
         />
         {suffix && (
           <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
