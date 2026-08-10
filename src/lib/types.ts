@@ -71,14 +71,87 @@ export const EMPTY_FINANCING_COSTS: FinancingCosts = {
   miscFinancingCosts: "",
 };
 
-// Combined deal draft. Sections beyond property/financing (holding,
-// buying/selling costs, deal summary) join this shape in later steps.
+// Holding Costs (roadmap Step 4). Taxes/insurance are entered as annual
+// figures (matching the xlsx) and converted to monthly in calculations.ts;
+// everything else is entered directly as a monthly figure.
+export interface HoldingCosts {
+  annualPropertyTaxes: number | "";
+  monthlyHoaFees: number | "";
+  annualInsurance: number | "";
+  monthlyGas: number | "";
+  monthlyWater: number | "";
+  monthlyElectricity: number | "";
+  monthlyMiscUtilities: number | "";
+  miscHoldingCosts: number | "";
+}
+
+export const EMPTY_HOLDING_COSTS: HoldingCosts = {
+  annualPropertyTaxes: "",
+  monthlyHoaFees: "",
+  annualInsurance: "",
+  monthlyGas: "",
+  monthlyWater: "",
+  monthlyElectricity: "",
+  monthlyMiscUtilities: "",
+  miscHoldingCosts: "",
+};
+
+// Buying Transaction Costs (roadmap Step 5). Title insurance follows the
+// xlsx formula: a fixed $500 base + a % of purchase price.
+export interface BuyingCosts {
+  escrowAttorneyFees: number | "";
+  titleInsurancePercent: number | "";
+  miscBuyingCosts: number | "";
+}
+
+export const EMPTY_BUYING_COSTS: BuyingCosts = {
+  escrowAttorneyFees: "",
+  titleInsurancePercent: "",
+  miscBuyingCosts: "",
+};
+
+// Selling Transaction Costs (roadmap Step 5). Realtor fees and transfer/
+// conveyance fees are both % of ARV, matching the xlsx.
+export interface SellingCosts {
+  escrowAttorneyFees: number | "";
+  recordingFees: number | "";
+  realtorFeesPercent: number | "";
+  transferConveyancePercent: number | "";
+  homeWarranty: number | "";
+  stagingCosts: number | "";
+  marketingCosts: number | "";
+  miscSellingCosts: number | "";
+}
+
+export const EMPTY_SELLING_COSTS: SellingCosts = {
+  escrowAttorneyFees: "",
+  recordingFees: "",
+  realtorFeesPercent: "",
+  transferConveyancePercent: "",
+  homeWarranty: "",
+  stagingCosts: "",
+  marketingCosts: "",
+  miscSellingCosts: "",
+};
+
+// Combined deal draft. Sections beyond these (a full settings panel)
+// join this shape in later steps.
 export interface Deal {
   property: PropertyInfo;
   financing: FinancingCosts;
+  holding: HoldingCosts;
+  buying: BuyingCosts;
+  selling: SellingCosts;
+  // ROI% at/above this is flagged "good" (Deal Summary panel, Step 6).
+  // Workshop convention default of 10%, per app-spec.md.
+  roiThresholdPercent: number | "";
 }
 
 export const EMPTY_DEAL: Deal = {
   property: EMPTY_PROPERTY_INFO,
   financing: EMPTY_FINANCING_COSTS,
+  holding: EMPTY_HOLDING_COSTS,
+  buying: EMPTY_BUYING_COSTS,
+  selling: EMPTY_SELLING_COSTS,
+  roiThresholdPercent: 10,
 };

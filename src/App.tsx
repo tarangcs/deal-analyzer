@@ -2,39 +2,42 @@ import { useMemo } from "react";
 import type React from "react";
 import { PropertySection } from "@/components/deal-form/property-section";
 import { FinancingSection } from "@/components/deal-form/financing-section";
+import { HoldingSection } from "@/components/deal-form/holding-section";
+import { TransactionCostsSection } from "@/components/deal-form/transaction-costs-section";
+import { DealSummarySection } from "@/components/deal-form/deal-summary-section";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 import { useDraftState } from "@/hooks/use-draft-state";
 import { numOrZero, purchaseRepairTotal } from "@/lib/calculations";
-import { EMPTY_DEAL, type FinancingCosts, type PropertyInfo } from "@/lib/types";
+import { EMPTY_DEAL, type Deal } from "@/lib/types";
 import { validatePropertyInfo } from "@/lib/validation";
 
 const DRAFT_KEY = "deal-analyzer:draft:deal";
 
+/** Scopes setDeal to one section of the Deal, so each section component gets a plain useState-shaped setter. */
+function makeSectionSetter<K extends keyof Deal>(
+  setDeal: React.Dispatch<React.SetStateAction<Deal>>,
+  key: K,
+): React.Dispatch<React.SetStateAction<Deal[K]>> {
+  return (update) => {
+    setDeal((prev) => ({
+      ...prev,
+      [key]:
+        typeof update === "function"
+          ? (update as (v: Deal[K]) => Deal[K])(prev[key])
+          : update,
+    }));
+  };
+}
+
 function App() {
   const [deal, setDeal, clearDraft] = useDraftState(DRAFT_KEY, EMPTY_DEAL);
 
-  const setProperty: React.Dispatch<React.SetStateAction<PropertyInfo>> = (update) => {
-    setDeal((prev) => ({
-      ...prev,
-      property:
-        typeof update === "function"
-          ? (update as (p: PropertyInfo) => PropertyInfo)(prev.property)
-          : update,
-    }));
-  };
-
-  const setFinancing: React.Dispatch<React.SetStateAction<FinancingCosts>> = (
-    update,
-  ) => {
-    setDeal((prev) => ({
-      ...prev,
-      financing:
-        typeof update === "function"
-          ? (update as (f: FinancingCosts) => FinancingCosts)(prev.financing)
-          : update,
-    }));
-  };
+  const setProperty = makeSectionSetter(setDeal, "property");
+  const setFinancing = makeSectionSetter(setDeal, "financing");
+  const setHolding = makeSectionSetter(setDeal, "holding");
+  const setBuying = makeSectionSetter(setDeal, "buying");
+  const setSelling = makeSectionSetter(setDeal, "selling");
 
   const errors = useMemo(
     () => validatePropertyInfo(deal.property),
@@ -50,6 +53,8 @@ function App() {
       deal.property.purchasePrice,
     );
   }, [deal.property.repairCost, deal.property.purchasePrice]);
+
+  const holdMonths = numOrZero(deal.property.holdMonths);
 
   return (
     <TooltipProvider>
@@ -99,7 +104,29 @@ function App() {
             <FinancingSection
               value={deal.financing}
               onChange={setFinancing}
-              holdMonths={numOrZero(deal.property.holdMonths)}
+              holdMonths={holdMonths}
+            />
+
+            <HoldingSection
+              value={deal.holding}
+              onChange={setHolding}
+              holdMonths={holdMonths}
+            />
+
+            <TransactionCostsSection
+              buying={deal.buying}
+              onBuyingChange={setBuying}
+              selling={deal.selling}
+              onSellingChange={setSelling}
+              purchasePrice={numOrZero(deal.property.purchasePrice)}
+              arv={numOrZero(deal.property.arv)}
+            />
+
+            <DealSummarySection
+              deal={deal}
+              onRoiThresholdChange={(value) =>
+                setDeal((prev) => ({ ...prev, roiThresholdPercent: value }))
+              }
             />
           </div>
         </main>

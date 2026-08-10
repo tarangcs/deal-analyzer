@@ -12,7 +12,7 @@ export function FieldLabel({
   definition,
   required,
 }: {
-  htmlFor: string;
+  htmlFor?: string;
   label: string;
   definition?: string;
   required?: boolean;
