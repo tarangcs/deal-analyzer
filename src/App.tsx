@@ -1,28 +1,55 @@
 import { useMemo } from "react";
+import type React from "react";
 import { PropertySection } from "@/components/deal-form/property-section";
+import { FinancingSection } from "@/components/deal-form/financing-section";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 import { useDraftState } from "@/hooks/use-draft-state";
-import { purchaseRepairTotal } from "@/lib/calculations";
-import { EMPTY_PROPERTY_INFO } from "@/lib/types";
+import { numOrZero, purchaseRepairTotal } from "@/lib/calculations";
+import { EMPTY_DEAL, type FinancingCosts, type PropertyInfo } from "@/lib/types";
 import { validatePropertyInfo } from "@/lib/validation";
 
-const DRAFT_KEY = "deal-analyzer:draft:property-info";
+const DRAFT_KEY = "deal-analyzer:draft:deal";
 
 function App() {
-  const [property, setProperty, clearDraft] = useDraftState(
-    DRAFT_KEY,
-    EMPTY_PROPERTY_INFO,
-  );
+  const [deal, setDeal, clearDraft] = useDraftState(DRAFT_KEY, EMPTY_DEAL);
 
-  const errors = useMemo(() => validatePropertyInfo(property), [property]);
+  const setProperty: React.Dispatch<React.SetStateAction<PropertyInfo>> = (update) => {
+    setDeal((prev) => ({
+      ...prev,
+      property:
+        typeof update === "function"
+          ? (update as (p: PropertyInfo) => PropertyInfo)(prev.property)
+          : update,
+    }));
+  };
+
+  const setFinancing: React.Dispatch<React.SetStateAction<FinancingCosts>> = (
+    update,
+  ) => {
+    setDeal((prev) => ({
+      ...prev,
+      financing:
+        typeof update === "function"
+          ? (update as (f: FinancingCosts) => FinancingCosts)(prev.financing)
+          : update,
+    }));
+  };
+
+  const errors = useMemo(
+    () => validatePropertyInfo(deal.property),
+    [deal.property],
+  );
   const hasErrors = Object.keys(errors).length > 0;
 
   const total = useMemo(() => {
-    if (typeof property.repairCost !== "number") return null;
-    if (typeof property.purchasePrice !== "number") return null;
-    return purchaseRepairTotal(property.repairCost, property.purchasePrice);
-  }, [property.repairCost, property.purchasePrice]);
+    if (typeof deal.property.repairCost !== "number") return null;
+    if (typeof deal.property.purchasePrice !== "number") return null;
+    return purchaseRepairTotal(
+      deal.property.repairCost,
+      deal.property.purchasePrice,
+    );
+  }, [deal.property.repairCost, deal.property.purchasePrice]);
 
   return (
     <TooltipProvider>
@@ -38,7 +65,7 @@ function App() {
         <main className="flex-1 px-4 py-8">
           <div className="mx-auto max-w-3xl space-y-6">
             <PropertySection
-              value={property}
+              value={deal.property}
               onChange={setProperty}
               errors={errors}
             />
@@ -68,6 +95,12 @@ function App() {
                 Fill in the required fields (marked with *) to continue.
               </p>
             )}
+
+            <FinancingSection
+              value={deal.financing}
+              onChange={setFinancing}
+              holdMonths={numOrZero(deal.property.holdMonths)}
+            />
           </div>
         </main>
       </div>

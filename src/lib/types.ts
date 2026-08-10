@@ -41,3 +41,44 @@ export const EMPTY_PROPERTY_INFO: PropertyInfo = {
   purchasePrice: "",
   holdMonths: 3, // spec default
 };
+
+// One mortgage/lien slot (roadmap Step 3: up to 3 — first, second, misc).
+// interestRate is stored as a percent as typed (e.g. 12 for 12%), not a
+// decimal, to match how points are entered.
+export interface MortgageLoan {
+  amount: number | "";
+  points: number | "";
+  interestRate: number | "";
+}
+
+export const EMPTY_MORTGAGE_LOAN: MortgageLoan = {
+  amount: "",
+  points: "",
+  interestRate: "",
+};
+
+export interface FinancingCosts {
+  firstMortgage: MortgageLoan;
+  secondMortgage: MortgageLoan;
+  miscMortgage: MortgageLoan;
+  miscFinancingCosts: number | "";
+}
+
+export const EMPTY_FINANCING_COSTS: FinancingCosts = {
+  firstMortgage: { ...EMPTY_MORTGAGE_LOAN },
+  secondMortgage: { ...EMPTY_MORTGAGE_LOAN },
+  miscMortgage: { ...EMPTY_MORTGAGE_LOAN },
+  miscFinancingCosts: "",
+};
+
+// Combined deal draft. Sections beyond property/financing (holding,
+// buying/selling costs, deal summary) join this shape in later steps.
+export interface Deal {
+  property: PropertyInfo;
+  financing: FinancingCosts;
+}
+
+export const EMPTY_DEAL: Deal = {
+  property: EMPTY_PROPERTY_INFO,
+  financing: EMPTY_FINANCING_COSTS,
+};
