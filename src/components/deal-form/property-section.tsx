@@ -114,7 +114,7 @@ export function PropertySection({
               onValueChange={(v) => set("occupied", v === "yes")}
             >
               <SelectTrigger id="occupied" className="w-full">
-                <SelectValue />
+                <SelectValue>{(v: string) => (v === "yes" ? "Yes" : "No")}</SelectValue>
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="no">No</SelectItem>

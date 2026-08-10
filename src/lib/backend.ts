@@ -43,3 +43,38 @@ export async function createDeal(
   const result = await postAction({ action: "create", ...payload });
   return result as { ok: boolean; id: string };
 }
+
+/**
+ * A saved deal as returned by the backend's list endpoint. Numeric-ish
+ * fields are typed loosely (number | string) because rows added by hand
+ * directly in the Sheet (rather than through this app) can have blank
+ * cells (empty string) or non-numeric text — see ROADMAP.md Step 10.
+ */
+export interface DealRecord {
+  id: string;
+  createdAt: string;
+  updatedAt: string;
+  evaluatorName: string;
+  propertyAddress: string;
+  status: string;
+  date: string;
+  arv: number | string;
+  purchasePrice: number | string;
+  estimatedNetProfit: number | string;
+  estimatedRoiPercent: number | string;
+  dealQuality: string;
+  notes: string;
+  archived: boolean;
+  deal: Partial<Deal>;
+}
+
+export async function listDeals(): Promise<DealRecord[]> {
+  if (!API_URL) {
+    throw new Error("VITE_APPS_SCRIPT_URL is not configured");
+  }
+  const res = await fetch(API_URL);
+  if (!res.ok) {
+    throw new Error(`Backend request failed: ${res.status}`);
+  }
+  return res.json();
+}

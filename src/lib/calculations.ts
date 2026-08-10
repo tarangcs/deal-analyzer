@@ -10,6 +10,17 @@ export function numOrZero(value: number | ""): number {
   return typeof value === "number" ? value : 0;
 }
 
+/**
+ * Like numOrZero, but for values coming back from the Sheet (DealRecord),
+ * which can be a blank cell (""), non-numeric text someone typed by hand,
+ * or already a number. Never throws, never returns NaN.
+ */
+export function toNumberLoose(value: number | string): number {
+  if (typeof value === "number") return value;
+  const parsed = Number(value);
+  return Number.isNaN(parsed) ? 0 : parsed;
+}
+
 /** xlsx row 20: PURCHASE and REPAIR COSTS = repair cost + purchase price. */
 export function purchaseRepairTotal(
   repairCost: number,

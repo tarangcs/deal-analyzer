@@ -6,6 +6,7 @@ import { HoldingSection } from "@/components/deal-form/holding-section";
 import { TransactionCostsSection } from "@/components/deal-form/transaction-costs-section";
 import { DealSummarySection } from "@/components/deal-form/deal-summary-section";
 import { SettingsDialog } from "@/components/deal-form/settings-dialog";
+import { DealsList } from "@/components/deals-list/deals-list";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 import { useDraftState } from "@/hooks/use-draft-state";
@@ -35,7 +36,10 @@ function makeSectionSetter<K extends keyof Deal>(
 
 type SaveStatus = "idle" | "saving" | "saved" | "error";
 
+type View = "calculator" | "deals";
+
 function App() {
+  const [view, setView] = useState<View>("calculator");
   const [deal, setDeal] = useDraftState(DRAFT_KEY, EMPTY_DEAL);
   const [settings, setSettings] = useDraftState(SETTINGS_KEY, DEFAULT_SETTINGS);
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
@@ -105,13 +109,46 @@ function App() {
       <div className="min-h-svh flex flex-col">
         <header className="border-b border-border">
           <div className="mx-auto flex max-w-3xl items-center justify-between px-4 py-4">
-            <span className="text-lg font-semibold tracking-tight">
-              Deal Analyzer
-            </span>
+            <div className="flex items-center gap-6">
+              <span className="text-lg font-semibold tracking-tight">
+                Deal Analyzer
+              </span>
+              <nav className="flex gap-1">
+                <button
+                  type="button"
+                  onClick={() => setView("calculator")}
+                  className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+                    view === "calculator"
+                      ? "bg-muted text-foreground"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  Calculator
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setView("deals")}
+                  className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+                    view === "deals"
+                      ? "bg-muted text-foreground"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  Deals
+                </button>
+              </nav>
+            </div>
             <SettingsDialog value={settings} onChange={setSettings} />
           </div>
         </header>
 
+        {view === "deals" ? (
+          <main className="flex-1 px-4 py-8">
+            <div className="mx-auto max-w-3xl">
+              <DealsList />
+            </div>
+          </main>
+        ) : (
         <main className="flex-1 px-4 py-8">
           <div className="mx-auto max-w-3xl space-y-6">
             <PropertySection
@@ -194,6 +231,7 @@ function App() {
             </div>
           </div>
         </main>
+        )}
       </div>
     </TooltipProvider>
   );
