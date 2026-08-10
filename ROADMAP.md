@@ -116,7 +116,7 @@ the working agreement (one step per turn, model choice, `/cost` habits).
    archive via an action param), deploy as Web App. Test independently
    of the frontend via `curl`/Postman: list returns `[]`, post appends a
    row, delete/update mutate the right row.
-9. **Wire up Save Deal** from the React form to the Apps Script endpoint.
+9. **Wire up Save Deal** ✅ **Done.** from the React form to the Apps Script endpoint.
    Test: save the sample deal, confirm the row appears correctly in the
    Google Sheet.
 10. **Deals List view** — fetch & display saved deals (mobile-friendly
