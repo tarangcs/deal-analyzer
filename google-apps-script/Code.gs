@@ -111,7 +111,11 @@ function doPost(e) {
         return;
       }
       if (h === 'dealJson') {
-        sheet.getRange(rowIndex, colIndex + 1).setValue(JSON.stringify(body.deal || {}));
+        // Only touch the stored deal blob if this update actually included
+        // one — a partial update (e.g. just "notes") must not wipe it out.
+        if (body.deal !== undefined) {
+          sheet.getRange(rowIndex, colIndex + 1).setValue(JSON.stringify(body.deal));
+        }
         return;
       }
       if (body[h] !== undefined) {
