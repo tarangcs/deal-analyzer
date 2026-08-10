@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   committedCapital,
+  computeSensitivity,
   dealQualityFlag,
   downPaymentRequired,
   estimatedNetProfit,
@@ -208,31 +209,31 @@ describe("dealQualityFlag", () => {
   });
 });
 
+const GOLDEN_DEAL: Deal = {
+  ...EMPTY_DEAL,
+  property: {
+    ...EMPTY_DEAL.property,
+    arv: 250_000,
+    purchasePrice: 175_000,
+    repairCost: 10_000,
+    squareFootage: 1_650,
+    holdMonths: 2,
+  },
+  financing: {
+    firstMortgage: { amount: 130_000, points: 2, interestRate: 12 },
+    secondMortgage: { amount: 25_000, points: 2, interestRate: 4 },
+    miscMortgage: { amount: 10_000, points: 2, interestRate: 12 },
+    miscFinancingCosts: 0,
+  },
+  holding: GOLDEN_HOLDING,
+  buying: GOLDEN_BUYING,
+  selling: GOLDEN_SELLING,
+  roiThresholdPercent: 10,
+};
+
 describe("summarizeDeal", () => {
   it("matches the golden fixture end-to-end from a full Deal object", () => {
-    const deal: Deal = {
-      ...EMPTY_DEAL,
-      property: {
-        ...EMPTY_DEAL.property,
-        arv: 250_000,
-        purchasePrice: 175_000,
-        repairCost: 10_000,
-        squareFootage: 1_650,
-        holdMonths: 2,
-      },
-      financing: {
-        firstMortgage: { amount: 130_000, points: 2, interestRate: 12 },
-        secondMortgage: { amount: 25_000, points: 2, interestRate: 4 },
-        miscMortgage: { amount: 10_000, points: 2, interestRate: 12 },
-        miscFinancingCosts: 0,
-      },
-      holding: GOLDEN_HOLDING,
-      buying: GOLDEN_BUYING,
-      selling: GOLDEN_SELLING,
-      roiThresholdPercent: 10,
-    };
-
-    const summary = summarizeDeal(deal);
+    const summary = summarizeDeal(GOLDEN_DEAL);
     expect(summary.netProfit).toBeCloseTo(44_420.83, 2);
     expect(summary.costPerSqFt).toBeCloseTo(112.12, 2);
     expect(summary.downPayment).toBeCloseTo(15_137.5, 2);
@@ -240,5 +241,23 @@ describe("summarizeDeal", () => {
     expect(summary.rehabRoi * 100).toBeCloseTo(24.01, 2);
     expect(summary.roi * 100).toBeCloseTo(21.61, 2);
     expect(summary.quality).toBe("good");
+  });
+});
+
+describe("computeSensitivity", () => {
+  it("matches hand-computed ±10% ARV/repair swings for the golden fixture", () => {
+    const scenarios = computeSensitivity(GOLDEN_DEAL);
+    const byLabel = Object.fromEntries(
+      scenarios.map((s) => [s.label, s.netProfit]),
+    );
+
+    // ARV also feeds selling costs (realtor 3% + transfer 0.12% of ARV),
+    // so the swing isn't a flat ±10% of ARV pass-through to net profit.
+    expect(byLabel["ARV −10%"]).toBeCloseTo(20_200.83, 2);
+    expect(byLabel["ARV +10%"]).toBeCloseTo(68_640.83, 2);
+    // Repair cost doesn't feed any percentage-based cost, so it's a
+    // straight ±10% of $10,000 = ±$1,000 relative to the $44,420.83 base.
+    expect(byLabel["Repair Cost −10%"]).toBeCloseTo(45_420.83, 2);
+    expect(byLabel["Repair Cost +10%"]).toBeCloseTo(43_420.83, 2);
   });
 });

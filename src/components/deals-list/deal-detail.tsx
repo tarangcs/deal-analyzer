@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { summarizeDeal } from "@/lib/calculations";
+import { computeSensitivity, summarizeDeal } from "@/lib/calculations";
 import {
   archiveDeal,
   deleteDeal,
@@ -27,13 +27,40 @@ import {
   type DealRecord,
 } from "@/lib/backend";
 import { QUALITY_STYLES } from "@/lib/deal-quality-styles";
-import { money, percent } from "@/lib/format";
+import { money, moneyDelta, percent } from "@/lib/format";
 
 function Row({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-center justify-between border-b border-border py-1.5 text-sm last:border-0">
       <span className="text-muted-foreground">{label}</span>
       <span className="font-medium">{value}</span>
+    </div>
+  );
+}
+
+function SensitivityRow({
+  label,
+  netProfit,
+  baseNetProfit,
+}: {
+  label: string;
+  netProfit: number;
+  baseNetProfit: number;
+}) {
+  const delta = netProfit - baseNetProfit;
+  const deltaClass =
+    delta > 0
+      ? "text-emerald-600 dark:text-emerald-400"
+      : delta < 0
+        ? "text-rose-600 dark:text-rose-400"
+        : "text-muted-foreground";
+  return (
+    <div className="flex items-center justify-between border-b border-border py-1.5 text-sm last:border-0">
+      <span className="text-muted-foreground">{label}</span>
+      <span>
+        <span className="font-medium">{money(netProfit)}</span>{" "}
+        <span className={`text-xs ${deltaClass}`}>({moneyDelta(delta)})</span>
+      </span>
     </div>
   );
 }
@@ -59,6 +86,7 @@ export function DealDetail({
 
   const deal = toFullDeal(record);
   const summary = summarizeDeal(deal);
+  const sensitivity = computeSensitivity(deal);
   const qualityStyle = QUALITY_STYLES[summary.quality];
   const loans = [
     { label: "First Mortgage", loan: deal.financing.firstMortgage },
@@ -232,6 +260,23 @@ export function DealDetail({
             <Row label="My Committed Capital" value={money(summary.committedCapital)} />
             <Row label="Purchase + Rehab ROI" value={percent(summary.rehabRoi)} />
             <Row label="Estimated ROI (fully loaded)" value={percent(summary.roi)} />
+          </div>
+
+          <div>
+            <h3 className="mb-1 text-sm font-medium">
+              Sensitivity Check{" "}
+              <span className="font-normal text-muted-foreground">
+                (±10% on the least certain inputs)
+              </span>
+            </h3>
+            {sensitivity.map((s) => (
+              <SensitivityRow
+                key={s.label}
+                label={s.label}
+                netProfit={s.netProfit}
+                baseNetProfit={summary.netProfit}
+              />
+            ))}
           </div>
 
           {record.notes && (

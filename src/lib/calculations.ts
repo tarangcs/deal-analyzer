@@ -327,3 +327,43 @@ export function summarizeDeal(deal: Deal): DealSummary {
     quality,
   };
 }
+
+export interface SensitivityScenario {
+  label: string;
+  netProfit: number;
+}
+
+/**
+ * ±10% swing on ARV and repair cost — the two least certain inputs per
+ * app-spec.md's "Nice-to-Have Features". Each scenario re-runs the full
+ * summarizeDeal(), not a naive ±10%-of-net-profit shortcut: ARV also
+ * feeds selling costs (realtor/transfer fees are a % of ARV), so an ARV
+ * swing doesn't pass straight through to net profit 1:1.
+ */
+export function computeSensitivity(deal: Deal): SensitivityScenario[] {
+  const arv = numOrZero(deal.property.arv);
+  const repairCost = numOrZero(deal.property.repairCost);
+
+  function withArv(multiplier: number): Deal {
+    return { ...deal, property: { ...deal.property, arv: arv * multiplier } };
+  }
+  function withRepairCost(multiplier: number): Deal {
+    return {
+      ...deal,
+      property: { ...deal.property, repairCost: repairCost * multiplier },
+    };
+  }
+
+  return [
+    { label: "ARV −10%", netProfit: summarizeDeal(withArv(0.9)).netProfit },
+    { label: "ARV +10%", netProfit: summarizeDeal(withArv(1.1)).netProfit },
+    {
+      label: "Repair Cost −10%",
+      netProfit: summarizeDeal(withRepairCost(0.9)).netProfit,
+    },
+    {
+      label: "Repair Cost +10%",
+      netProfit: summarizeDeal(withRepairCost(1.1)).netProfit,
+    },
+  ];
+}
