@@ -4,21 +4,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  committedCapital,
-  dealQualityFlag,
-  downPaymentRequired,
-  estimatedNetProfit,
-  estimatedROI,
-  numOrZero,
-  purchaseRehabROI,
-  purchaseRepairCostPerSqFt,
-  totalBuyingCosts,
-  totalFinancingCosts,
-  totalHoldingCosts,
-  totalMonthlyHoldingCosts,
-  totalSellingCosts,
-} from "@/lib/calculations";
+import { summarizeDeal } from "@/lib/calculations";
 import { FIELD_DEFINITIONS } from "@/lib/definitions";
 import type { DealQuality } from "@/lib/calculations";
 import type { Deal } from "@/lib/types";
@@ -75,51 +61,8 @@ export function DealSummarySection({
   deal: Deal;
   onRoiThresholdChange: (value: number | "") => void;
 }) {
-  const { property, financing, holding, buying, selling } = deal;
-  const purchasePrice = numOrZero(property.purchasePrice);
-  const repairCost = numOrZero(property.repairCost);
-  const arv = numOrZero(property.arv);
-  const holdMonths = numOrZero(property.holdMonths);
-  const loans = [financing.firstMortgage, financing.secondMortgage, financing.miscMortgage];
-
-  const totalFinancing = totalFinancingCosts(loans, numOrZero(financing.miscFinancingCosts), holdMonths);
-  const totalHolding = totalHoldingCosts(totalMonthlyHoldingCosts(holding), holdMonths);
-  const totalBuying = totalBuyingCosts(buying, purchasePrice);
-  const totalSelling = totalSellingCosts(selling, arv);
-
-  const netProfit = estimatedNetProfit({
-    arv,
-    purchasePrice,
-    repairCost,
-    totalFinancing,
-    totalHolding,
-    totalBuying,
-    totalSelling,
-  });
-
-  const costPerSqFt = purchaseRepairCostPerSqFt(
-    purchasePrice,
-    repairCost,
-    numOrZero(property.squareFootage),
-  );
-  const downPayment = downPaymentRequired({ purchasePrice, totalBuying, loans });
-  const capital = committedCapital({
-    purchasePrice,
-    repairCost,
-    loans,
-    totalHolding,
-    totalBuying,
-    stagingCosts: numOrZero(selling.stagingCosts),
-    marketingCosts: numOrZero(selling.marketingCosts),
-    miscSellingCosts: numOrZero(selling.miscSellingCosts),
-  });
-  const rehabROI = purchaseRehabROI(netProfit, purchasePrice, repairCost);
-  const totalCosts =
-    purchasePrice + repairCost + totalFinancing + totalHolding + totalBuying + totalSelling;
-  const roi = estimatedROI(netProfit, totalCosts);
-  const threshold = numOrZero(deal.roiThresholdPercent);
-  const quality = dealQualityFlag(roi, threshold);
-  const qualityStyle = QUALITY_STYLES[quality];
+  const summary = summarizeDeal(deal);
+  const qualityStyle = QUALITY_STYLES[summary.quality];
 
   return (
     <Card>
@@ -133,39 +76,41 @@ export function DealSummarySection({
               label="Estimated Net Profit"
               definition={FIELD_DEFINITIONS.estimatedNetProfit}
             />
-            <p className="text-3xl font-semibold tracking-tight">{money(netProfit)}</p>
+            <p className="text-3xl font-semibold tracking-tight">
+              {money(summary.netProfit)}
+            </p>
           </div>
           <span
             className={`rounded-full border px-3 py-1 text-sm font-medium ${qualityStyle.className}`}
           >
-            {qualityStyle.label} · {percent(roi)} ROI
+            {qualityStyle.label} · {percent(summary.roi)} ROI
           </span>
         </div>
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
           <Stat
             label="Purchase + Rehab Cost / Sq Ft"
-            value={money(costPerSqFt)}
+            value={money(summary.costPerSqFt)}
             definition={FIELD_DEFINITIONS.costPerSqFt}
           />
           <Stat
             label="Down Payment Required"
-            value={money(downPayment)}
+            value={money(summary.downPayment)}
             definition={FIELD_DEFINITIONS.downPaymentRequired}
           />
           <Stat
             label="My Committed Capital"
-            value={money(capital)}
+            value={money(summary.committedCapital)}
             definition={FIELD_DEFINITIONS.committedCapital}
           />
           <Stat
             label="Purchase + Rehab ROI"
-            value={percent(rehabROI)}
+            value={percent(summary.rehabRoi)}
             definition={FIELD_DEFINITIONS.purchaseRehabROI}
           />
           <Stat
             label="Estimated ROI (fully loaded)"
-            value={percent(roi)}
+            value={percent(summary.roi)}
             definition={FIELD_DEFINITIONS.estimatedROI}
           />
         </div>

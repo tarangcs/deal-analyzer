@@ -1,6 +1,6 @@
 // Pure money-math functions, no React/UI dependency. Checked against the
 // golden fixture in CLAUDE.md (123 Main St, Cleveland OH) to the cent.
-import type { BuyingCosts, HoldingCosts, MortgageLoan, SellingCosts } from "./types";
+import type { BuyingCosts, Deal, HoldingCosts, MortgageLoan, SellingCosts } from "./types";
 
 /** xlsx C58: fixed base baked into the formula, not a separate input cell. */
 const TITLE_INSURANCE_BASE_FEE = 500;
@@ -230,4 +230,81 @@ export function dealQualityFlag(
   if (roiPercent < 0) return "poor";
   if (roiPercent < thresholdPercent) return "marginal";
   return "good";
+}
+
+export interface DealSummary {
+  netProfit: number;
+  costPerSqFt: number;
+  downPayment: number;
+  committedCapital: number;
+  /** Decimal fraction (0.24 = 24%), matching purchaseRehabROI/estimatedROI. */
+  rehabRoi: number;
+  /** Decimal fraction (0.24 = 24%). */
+  roi: number;
+  quality: DealQuality;
+}
+
+/**
+ * Every Deal Summary & ROI number, computed once from a full Deal. Shared
+ * by the summary panel (display) and the save-to-backend payload (Step 9)
+ * so both always agree on the same numbers.
+ */
+export function summarizeDeal(deal: Deal): DealSummary {
+  const { property, financing, holding, buying, selling } = deal;
+  const purchasePrice = numOrZero(property.purchasePrice);
+  const repairCost = numOrZero(property.repairCost);
+  const arv = numOrZero(property.arv);
+  const holdMonths = numOrZero(property.holdMonths);
+  const loans = [financing.firstMortgage, financing.secondMortgage, financing.miscMortgage];
+
+  const totalFinancing = totalFinancingCosts(
+    loans,
+    numOrZero(financing.miscFinancingCosts),
+    holdMonths,
+  );
+  const totalHolding = totalHoldingCosts(totalMonthlyHoldingCosts(holding), holdMonths);
+  const totalBuying = totalBuyingCosts(buying, purchasePrice);
+  const totalSelling = totalSellingCosts(selling, arv);
+
+  const netProfit = estimatedNetProfit({
+    arv,
+    purchasePrice,
+    repairCost,
+    totalFinancing,
+    totalHolding,
+    totalBuying,
+    totalSelling,
+  });
+
+  const costPerSqFt = purchaseRepairCostPerSqFt(
+    purchasePrice,
+    repairCost,
+    numOrZero(property.squareFootage),
+  );
+  const downPayment = downPaymentRequired({ purchasePrice, totalBuying, loans });
+  const capital = committedCapital({
+    purchasePrice,
+    repairCost,
+    loans,
+    totalHolding,
+    totalBuying,
+    stagingCosts: numOrZero(selling.stagingCosts),
+    marketingCosts: numOrZero(selling.marketingCosts),
+    miscSellingCosts: numOrZero(selling.miscSellingCosts),
+  });
+  const rehabRoi = purchaseRehabROI(netProfit, purchasePrice, repairCost);
+  const totalCosts =
+    purchasePrice + repairCost + totalFinancing + totalHolding + totalBuying + totalSelling;
+  const roi = estimatedROI(netProfit, totalCosts);
+  const quality = dealQualityFlag(roi, numOrZero(deal.roiThresholdPercent));
+
+  return {
+    netProfit,
+    costPerSqFt,
+    downPayment,
+    committedCapital: capital,
+    rehabRoi,
+    roi,
+    quality,
+  };
 }

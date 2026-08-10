@@ -10,6 +10,7 @@ import {
   purchaseRehabROI,
   purchaseRepairCostPerSqFt,
   purchaseRepairTotal,
+  summarizeDeal,
   titleInsuranceCost,
   totalBuyingCosts,
   totalFinancingCosts,
@@ -17,11 +18,13 @@ import {
   totalMonthlyHoldingCosts,
   totalSellingCosts,
 } from "./calculations";
-import type {
-  BuyingCosts,
-  HoldingCosts,
-  MortgageLoan,
-  SellingCosts,
+import {
+  EMPTY_DEAL,
+  type BuyingCosts,
+  type Deal,
+  type HoldingCosts,
+  type MortgageLoan,
+  type SellingCosts,
 } from "./types";
 
 // Golden fixture loans, reused across the Step 6 deal-summary tests below.
@@ -202,5 +205,40 @@ describe("dealQualityFlag", () => {
   });
   it("flags good when at or above threshold", () => {
     expect(dealQualityFlag(0.1, 10)).toBe("good");
+  });
+});
+
+describe("summarizeDeal", () => {
+  it("matches the golden fixture end-to-end from a full Deal object", () => {
+    const deal: Deal = {
+      ...EMPTY_DEAL,
+      property: {
+        ...EMPTY_DEAL.property,
+        arv: 250_000,
+        purchasePrice: 175_000,
+        repairCost: 10_000,
+        squareFootage: 1_650,
+        holdMonths: 2,
+      },
+      financing: {
+        firstMortgage: { amount: 130_000, points: 2, interestRate: 12 },
+        secondMortgage: { amount: 25_000, points: 2, interestRate: 4 },
+        miscMortgage: { amount: 10_000, points: 2, interestRate: 12 },
+        miscFinancingCosts: 0,
+      },
+      holding: GOLDEN_HOLDING,
+      buying: GOLDEN_BUYING,
+      selling: GOLDEN_SELLING,
+      roiThresholdPercent: 10,
+    };
+
+    const summary = summarizeDeal(deal);
+    expect(summary.netProfit).toBeCloseTo(44_420.83, 2);
+    expect(summary.costPerSqFt).toBeCloseTo(112.12, 2);
+    expect(summary.downPayment).toBeCloseTo(15_137.5, 2);
+    expect(summary.committedCapital).toBeCloseTo(27_912.5, 2);
+    expect(summary.rehabRoi * 100).toBeCloseTo(24.01, 2);
+    expect(summary.roi * 100).toBeCloseTo(21.61, 2);
+    expect(summary.quality).toBe("good");
   });
 });

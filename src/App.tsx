@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type React from "react";
 import { PropertySection } from "@/components/deal-form/property-section";
 import { FinancingSection } from "@/components/deal-form/financing-section";
@@ -9,7 +9,8 @@ import { SettingsDialog } from "@/components/deal-form/settings-dialog";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 import { useDraftState } from "@/hooks/use-draft-state";
-import { numOrZero, purchaseRepairTotal } from "@/lib/calculations";
+import { createDeal } from "@/lib/backend";
+import { numOrZero, purchaseRepairTotal, summarizeDeal } from "@/lib/calculations";
 import { DEFAULT_SETTINGS, EMPTY_DEAL, dealFromSettings, type Deal } from "@/lib/types";
 import { validatePropertyInfo } from "@/lib/validation";
 
@@ -32,13 +33,49 @@ function makeSectionSetter<K extends keyof Deal>(
   };
 }
 
+type SaveStatus = "idle" | "saving" | "saved" | "error";
+
 function App() {
   const [deal, setDeal] = useDraftState(DRAFT_KEY, EMPTY_DEAL);
   const [settings, setSettings] = useDraftState(SETTINGS_KEY, DEFAULT_SETTINGS);
+  const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   function startNewDeal() {
     setDeal(dealFromSettings(settings));
+    setSaveStatus("idle");
   }
+
+  async function handleSaveDeal() {
+    setSaveStatus("saving");
+    setSaveError(null);
+    try {
+      const summary = summarizeDeal(deal);
+      await createDeal({
+        evaluatorName: deal.property.evaluatorName,
+        propertyAddress: deal.property.propertyAddress,
+        status: deal.property.status,
+        date: deal.property.date,
+        arv: numOrZero(deal.property.arv),
+        purchasePrice: numOrZero(deal.property.purchasePrice),
+        estimatedNetProfit: summary.netProfit,
+        estimatedRoiPercent: summary.roi * 100,
+        dealQuality: summary.quality,
+        notes: "",
+        deal,
+      });
+      setSaveStatus("saved");
+    } catch (err) {
+      setSaveStatus("error");
+      setSaveError(err instanceof Error ? err.message : "Save failed");
+    }
+  }
+
+  // Editing after a save (or a failed attempt) clears the stale status —
+  // "Saved" shouldn't keep showing once the deal has changed since.
+  useEffect(() => {
+    setSaveStatus("idle");
+  }, [deal]);
 
   const setProperty = makeSectionSetter(setDeal, "property");
   const setFinancing = makeSectionSetter(setDeal, "financing");
@@ -136,6 +173,25 @@ function App() {
                 setDeal((prev) => ({ ...prev, roiThresholdPercent: value }))
               }
             />
+
+            <div className="flex items-center justify-between rounded-lg border border-border bg-card p-4">
+              <p className="text-sm text-muted-foreground">
+                {saveStatus === "saving" && "Saving…"}
+                {saveStatus === "saved" && "Saved to the shared deals list."}
+                {saveStatus === "error" &&
+                  `Couldn't save: ${saveError ?? "unknown error"}`}
+                {saveStatus === "idle" &&
+                  (hasErrors
+                    ? "Fill in the required fields above to save."
+                    : "")}
+              </p>
+              <Button
+                onClick={handleSaveDeal}
+                disabled={hasErrors || saveStatus === "saving"}
+              >
+                {saveStatus === "saving" ? "Saving…" : "Save Deal"}
+              </Button>
+            </div>
           </div>
         </main>
       </div>

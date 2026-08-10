@@ -1,0 +1,45 @@
+import type { Deal } from "./types";
+
+const API_URL = import.meta.env.VITE_APPS_SCRIPT_URL;
+
+export interface CreateDealPayload {
+  evaluatorName: string;
+  propertyAddress: string;
+  status: string;
+  date: string;
+  arv: number;
+  purchasePrice: number;
+  estimatedNetProfit: number;
+  estimatedRoiPercent: number;
+  dealQuality: string;
+  notes: string;
+  deal: Deal;
+}
+
+/**
+ * POSTs with Content-Type: text/plain (not application/json) — Apps
+ * Script's CORS handling doesn't support the preflighted request a real
+ * JSON content-type would trigger. Apps Script reads the raw body
+ * regardless of what the header claims.
+ */
+async function postAction(body: Record<string, unknown>): Promise<unknown> {
+  if (!API_URL) {
+    throw new Error("VITE_APPS_SCRIPT_URL is not configured");
+  }
+  const res = await fetch(API_URL, {
+    method: "POST",
+    headers: { "Content-Type": "text/plain" },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) {
+    throw new Error(`Backend request failed: ${res.status}`);
+  }
+  return res.json();
+}
+
+export async function createDeal(
+  payload: CreateDealPayload,
+): Promise<{ ok: boolean; id: string }> {
+  const result = await postAction({ action: "create", ...payload });
+  return result as { ok: boolean; id: string };
+}
