@@ -108,7 +108,7 @@ the working agreement (one step per turn, model choice, `/cost` habits).
    a green/yellow/red deal-quality flag against a user-editable ROI
    threshold. Test: full end-to-end run of the sample deal matches all
    golden values above.
-7. **Editable defaults / settings panel** — closing-cost assumptions,
+7. **Editable defaults / settings panel** ✅ **Done.** — closing-cost assumptions,
    default hold period, ROI threshold — stored in `localStorage` for now.
    Test: change a default, confirm it flows into a fresh calculation.
 8. **Google Sheet + Apps Script backend** — create the "Deals" sheet,
