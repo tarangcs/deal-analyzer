@@ -119,11 +119,12 @@ the working agreement (one step per turn, model choice, `/cost` habits).
 9. **Wire up Save Deal** ✅ **Done.** from the React form to the Apps Script endpoint.
    Test: save the sample deal, confirm the row appears correctly in the
    Google Sheet.
-10. **Deals List view** — fetch & display saved deals (mobile-friendly
+10. **Deals List view** ✅ **Done.** — fetch & display saved deals (mobile-friendly
     table/card list), with sort (date, ROI) and search/filter (by
-    address, by status). Test: list reflects what's actually in the
-    sheet, including deals added manually in Sheets; filtering by status
-    and searching by address both narrow correctly.
+    address, by status, and evaluator — a simple self-service "find my
+    deals" filter instead of real login). Test: list reflects what's
+    actually in the sheet, including deals added manually in Sheets;
+    filtering by status and searching by address both narrow correctly.
 11. **Deal detail + Comparison view** — open a saved deal, select 2–3
     deals to compare side by side. Test with 3 distinct saved sample
     deals.
