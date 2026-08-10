@@ -21,6 +21,29 @@ alias to `src/`. After every `shadcn add`, move the new files into
 `src/components/ui/` (or `src/lib/`) and `rm -rf ./@`. Check for this
 before assuming a newly added component is where the CLI claims.
 
+## Gotcha: two GitHub remotes, only one deploys
+
+Vercel's project ("deal-analyzer-app-1", live at
+https://deal-analyzer-app-1.vercel.app/) is connected to
+`tarangcs/deal-analyzer-app-1`, NOT `tarangcs/deal-analyzer` (the repo
+this project was originally pushed to — it's a mirror created by an
+earlier Vercel import mishap). Both remotes are configured locally:
+
+```
+origin  https://github.com/tarangcs/deal-analyzer.git
+app1    https://github.com/tarangcs/deal-analyzer-app-1.git
+```
+
+**Push to both on every commit** (`git push origin main && git push app1
+main`) until this gets consolidated into a single repo. Pushing only to
+`origin` will NOT deploy — confirmed the hard way (a full commit sat
+unbuilt with zero deployment attempts in Vercel's dashboard until a
+fresh push to `app1` triggered it). Also note: GitHub→Vercel webhook
+delivery has been observed to silently miss an event once already — if
+a push to `app1` doesn't produce a new deployment within ~2 minutes, an
+empty commit (`git commit --allow-empty`) + push is a reliable
+workaround.
+
 ## Commands
 
 - `npm run dev` — dev server
