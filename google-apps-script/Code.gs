@@ -7,12 +7,17 @@
 // the Sheet doesn't need a migration every time the Deal shape grows.
 
 const SHEET_NAME = 'Deals';
+const DELETED_SHEET_NAME = 'Deleted';
 const HEADERS = [
   'id', 'createdAt', 'updatedAt',
   'evaluatorName', 'propertyAddress', 'status', 'date',
   'arv', 'purchasePrice', 'estimatedNetProfit', 'estimatedRoiPercent', 'dealQuality',
   'notes', 'archived', 'dealJson',
 ];
+// Deleted rows keep every Deals column, plus when and why. Deletes are a
+// soft move to this sheet, not a real delete — the group reviews it and
+// purges rows by hand in Sheets whenever they want, on their own schedule.
+const DELETED_HEADERS = HEADERS.concat(['deletedAt', 'deleteReason']);
 
 function getSheet_() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -22,6 +27,18 @@ function getSheet_() {
   }
   if (sheet.getLastRow() === 0) {
     sheet.appendRow(HEADERS);
+  }
+  return sheet;
+}
+
+function getDeletedSheet_() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let sheet = ss.getSheetByName(DELETED_SHEET_NAME);
+  if (!sheet) {
+    sheet = ss.insertSheet(DELETED_SHEET_NAME);
+  }
+  if (sheet.getLastRow() === 0) {
+    sheet.appendRow(DELETED_HEADERS);
   }
   return sheet;
 }
@@ -79,7 +96,8 @@ function doGet(e) {
  *     estimatedRoiPercent, dealQuality, notes }
  *   { action: 'update', id, ...same fields as create }
  *   { action: 'archive', id, archived: true|false }
- *   { action: 'delete', id }
+ *   { action: 'delete', id, reason } — reason is required (non-empty);
+ *     moves the row to the "Deleted" sheet rather than erasing it.
  */
 function doPost(e) {
   const body = JSON.parse(e.postData.contents);
@@ -134,8 +152,15 @@ function doPost(e) {
   }
 
   if (action === 'delete') {
+    const reason = (body.reason || '').toString().trim();
+    if (!reason) {
+      return jsonResponse_({ ok: false, error: 'A reason is required to delete a deal.' });
+    }
     const rowIndex = findRowIndexById_(sheet, body.id);
     if (rowIndex === -1) return jsonResponse_({ ok: false, error: 'not found' });
+    const rowValues = sheet.getRange(rowIndex, 1, 1, HEADERS.length).getValues()[0];
+    const deletedSheet = getDeletedSheet_();
+    deletedSheet.appendRow(rowValues.concat([new Date().toISOString(), reason]));
     sheet.deleteRow(rowIndex);
     return jsonResponse_({ ok: true });
   }

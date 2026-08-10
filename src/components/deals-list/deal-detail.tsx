@@ -6,6 +6,18 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { summarizeDeal } from "@/lib/calculations";
 import {
   archiveDeal,
@@ -41,6 +53,8 @@ export function DealDetail({
 }) {
   const [status, setStatus] = useState<ActionStatus>("idle");
   const [error, setError] = useState<string | null>(null);
+  const [deleteReason, setDeleteReason] = useState("");
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   const deal = toFullDeal(record);
   const summary = summarizeDeal(deal);
@@ -64,17 +78,11 @@ export function DealDetail({
   }
 
   async function handleDelete() {
-    if (
-      !window.confirm(
-        `Delete "${record.propertyAddress || "this deal"}"? This can't be undone.`,
-      )
-    ) {
-      return;
-    }
     setStatus("working");
     setError(null);
     try {
-      await deleteDeal(record.id);
+      await deleteDeal(record.id, deleteReason.trim());
+      setDeleteDialogOpen(false);
       onChanged();
     } catch (err) {
       setStatus("error");
@@ -99,14 +107,58 @@ export function DealDetail({
           >
             Archive
           </Button>
-          <Button
-            variant="outline"
-            onClick={handleDelete}
-            disabled={status === "working"}
-            className="text-destructive hover:text-destructive"
+          <Dialog
+            open={deleteDialogOpen}
+            onOpenChange={(open) => {
+              setDeleteDialogOpen(open);
+              if (!open) setDeleteReason("");
+            }}
           >
-            Delete
-          </Button>
+            <DialogTrigger
+              render={
+                <Button
+                  variant="outline"
+                  className="text-destructive hover:text-destructive"
+                />
+              }
+            >
+              Delete
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>
+                  Delete "{record.propertyAddress || "this deal"}"?
+                </DialogTitle>
+                <DialogDescription>
+                  This moves it to the Deleted sheet rather than erasing it —
+                  the group can review or recover it there. A reason is
+                  required.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-1.5">
+                <Label htmlFor="deleteReason">Reason for deleting</Label>
+                <Textarea
+                  id="deleteReason"
+                  rows={2}
+                  placeholder="e.g. duplicate entry, entered by mistake, seller backed out"
+                  value={deleteReason}
+                  onChange={(e) => setDeleteReason(e.target.value)}
+                />
+              </div>
+              <DialogFooter>
+                <DialogClose render={<Button variant="outline" />}>
+                  Cancel
+                </DialogClose>
+                <Button
+                  variant="destructive"
+                  onClick={handleDelete}
+                  disabled={!deleteReason.trim() || status === "working"}
+                >
+                  {status === "working" ? "Deleting…" : "Delete"}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
 

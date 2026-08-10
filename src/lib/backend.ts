@@ -22,8 +22,16 @@ export interface CreateDealPayload {
  * Script's CORS handling doesn't support the preflighted request a real
  * JSON content-type would trigger. Apps Script reads the raw body
  * regardless of what the header claims.
+ *
+ * Apps Script always responds HTTP 200, even when the action itself was
+ * rejected (e.g. delete without a reason) — that comes back as
+ * `{ ok: false, error }` in the body, not a non-2xx status. Checking for
+ * it here means every caller gets a real thrown error instead of having
+ * to remember to check `.ok` itself.
  */
-async function postAction(body: Record<string, unknown>): Promise<unknown> {
+async function postAction(
+  body: Record<string, unknown>,
+): Promise<{ ok: boolean; [key: string]: unknown }> {
   if (!API_URL) {
     throw new Error("VITE_APPS_SCRIPT_URL is not configured");
   }
@@ -35,7 +43,13 @@ async function postAction(body: Record<string, unknown>): Promise<unknown> {
   if (!res.ok) {
     throw new Error(`Backend request failed: ${res.status}`);
   }
-  return res.json();
+  const result = await res.json();
+  if (result && typeof result === "object" && result.ok === false) {
+    throw new Error(
+      typeof result.error === "string" ? result.error : "Request failed",
+    );
+  }
+  return result;
 }
 
 export async function createDeal(
@@ -61,8 +75,16 @@ export async function archiveDeal(
   return result as { ok: boolean };
 }
 
-export async function deleteDeal(id: string): Promise<{ ok: boolean }> {
-  const result = await postAction({ action: "delete", id });
+/**
+ * `reason` is required — the backend rejects an empty one. Deletes move
+ * the row to the "Deleted" sheet rather than erasing it, so the group
+ * can review or recover it later (see google-apps-script/Code.gs).
+ */
+export async function deleteDeal(
+  id: string,
+  reason: string,
+): Promise<{ ok: boolean }> {
+  const result = await postAction({ action: "delete", id, reason });
   return result as { ok: boolean };
 }
 

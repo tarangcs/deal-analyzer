@@ -75,10 +75,11 @@ curl -s -X POST <WEB_APP_URL> \
   -H "Content-Type: text/plain" \
   -d '{"action":"archive","id":"<ID>","archived":true}'
 
-# Delete
+# Delete (reason is required — moves the row to the "Deleted" sheet
+# rather than erasing it, so it can be reviewed/purged later)
 curl -s -X POST <WEB_APP_URL> \
   -H "Content-Type: text/plain" \
-  -d '{"action":"delete","id":"<ID>"}'
+  -d '{"action":"delete","id":"<ID>","reason":"duplicate entry"}'
 ```
 
 Note: even though these examples send `Content-Type: text/plain`
