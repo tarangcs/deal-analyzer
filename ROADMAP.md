@@ -111,7 +111,7 @@ the working agreement (one step per turn, model choice, `/cost` habits).
 7. **Editable defaults / settings panel** ✅ **Done.** — closing-cost assumptions,
    default hold period, ROI threshold — stored in `localStorage` for now.
    Test: change a default, confirm it flows into a fresh calculation.
-8. **Google Sheet + Apps Script backend** — create the "Deals" sheet,
+8. **Google Sheet + Apps Script backend** ✅ **Done.** — create the "Deals" sheet,
    write the Apps Script with `doGet`/`doPost` (create, update, delete/
    archive via an action param), deploy as Web App. Test independently
    of the frontend via `curl`/Postman: list returns `[]`, post appends a

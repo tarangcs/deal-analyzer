@@ -94,13 +94,41 @@ Expected outputs:
 
 ## Google Apps Script backend (Steps 8+)
 
+- Deployed and verified working (Step 8). Web App URL — needed for Step
+  9's frontend fetch calls:
+  `https://script.google.com/macros/s/AKfycbwqRJ-jeE4wUjVIVYNjBk2EMgbfGoz3e4JTHxcaNwcvFWQxDgPlA6XrITyX15PJIdklAA/exec`
+  Not a secret to guard like a password — see "Known tradeoffs" below —
+  but it's the single access point to the shared data, so don't post it
+  outside this repo/team.
+- Source lives at `google-apps-script/Code.gs`, deployed by hand via
+  script.google.com (no CLI for this). See
+  `google-apps-script/README.md` for full deploy steps.
 - Whichever Google account hosts the "Deal Analyzer — Deals" Sheet + its
   bound Apps Script owns the deployment.
 - **After every Apps Script code edit, a new Web App version must be
-  manually deployed** for the live endpoint to pick up the change — easy
-  to forget and debug the wrong thing.
+  manually deployed** for the live endpoint to pick up the change —
+  confirmed the hard way twice during Step 8 (Save alone does nothing to
+  the live URL; it's Deploy → Manage deployments → pencil icon → New
+  version → Deploy).
+- **curl vs. real clients**: `curl -L` on a POST to the `/exec` URL
+  reliably shows a "Page Not Found" Google Drive error page, even though
+  the request executes and writes correctly server-side every time —
+  confirmed by checking via a follow-up GET. This is specific to how
+  curl follows Apps Script's double-redirect response delivery; a real
+  browser's `fetch()` (what Step 9 will use) hasn't shown this problem
+  in Apps Script's documented behavior. When testing this backend with
+  curl, verify effects via a follow-up GET rather than trusting the
+  POST response body.
 - `doPost` from `fetch` needs the `text/plain` content-type workaround for
   Apps Script's CORS handling.
+- Sheet schema: a few indexed columns (id, evaluatorName, propertyAddress,
+  status, date, arv, purchasePrice, estimatedNetProfit,
+  estimatedRoiPercent, dealQuality, notes, archived) for the Step 10
+  list/search view, plus one `dealJson` column holding the full `Deal`
+  object — so Deal shape changes don't need a Sheet migration. `update`
+  only touches `dealJson` when the request actually includes a `deal`
+  field (a partial update, e.g. just `notes`, must not wipe it out —
+  this was a real bug, caught and fixed during Step 8 verification).
 
 ## Known tradeoffs (v1, accepted — see plan file for detail)
 
