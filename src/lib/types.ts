@@ -155,3 +155,43 @@ export const EMPTY_DEAL: Deal = {
   selling: EMPTY_SELLING_COSTS,
   roiThresholdPercent: 10,
 };
+
+// Group-wide defaults (roadmap Step 7), persisted separately from any one
+// deal so they apply to every *new* deal going forward — editing settings
+// never rewrites a deal already in progress. Percent assumptions (title
+// insurance, realtor fees, transfer/conveyance) start unset rather than
+// guessing a number, since they vary by market; hold period and ROI
+// threshold keep the workshop-convention defaults from app-spec.md.
+export interface Settings {
+  defaultHoldMonths: number | "";
+  defaultRoiThresholdPercent: number | "";
+  defaultTitleInsurancePercent: number | "";
+  defaultRealtorFeesPercent: number | "";
+  defaultTransferConveyancePercent: number | "";
+}
+
+export const DEFAULT_SETTINGS: Settings = {
+  defaultHoldMonths: 3,
+  defaultRoiThresholdPercent: 10,
+  defaultTitleInsurancePercent: "",
+  defaultRealtorFeesPercent: "",
+  defaultTransferConveyancePercent: "",
+};
+
+/** A blank deal seeded with the group's current default assumptions. */
+export function dealFromSettings(settings: Settings): Deal {
+  return {
+    ...EMPTY_DEAL,
+    property: { ...EMPTY_PROPERTY_INFO, holdMonths: settings.defaultHoldMonths },
+    buying: {
+      ...EMPTY_BUYING_COSTS,
+      titleInsurancePercent: settings.defaultTitleInsurancePercent,
+    },
+    selling: {
+      ...EMPTY_SELLING_COSTS,
+      realtorFeesPercent: settings.defaultRealtorFeesPercent,
+      transferConveyancePercent: settings.defaultTransferConveyancePercent,
+    },
+    roiThresholdPercent: settings.defaultRoiThresholdPercent,
+  };
+}

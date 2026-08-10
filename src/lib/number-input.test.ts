@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isPartialNumericInput } from "./number-field";
+import { isPartialNumericInput } from "./number-input";
 
 describe("isPartialNumericInput", () => {
   it("treats a trailing decimal point as partial (mid-typing '0.25')", () => {

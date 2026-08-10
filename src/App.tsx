@@ -5,14 +5,16 @@ import { FinancingSection } from "@/components/deal-form/financing-section";
 import { HoldingSection } from "@/components/deal-form/holding-section";
 import { TransactionCostsSection } from "@/components/deal-form/transaction-costs-section";
 import { DealSummarySection } from "@/components/deal-form/deal-summary-section";
+import { SettingsDialog } from "@/components/deal-form/settings-dialog";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 import { useDraftState } from "@/hooks/use-draft-state";
 import { numOrZero, purchaseRepairTotal } from "@/lib/calculations";
-import { EMPTY_DEAL, type Deal } from "@/lib/types";
+import { DEFAULT_SETTINGS, EMPTY_DEAL, dealFromSettings, type Deal } from "@/lib/types";
 import { validatePropertyInfo } from "@/lib/validation";
 
 const DRAFT_KEY = "deal-analyzer:draft:deal";
+const SETTINGS_KEY = "deal-analyzer:settings";
 
 /** Scopes setDeal to one section of the Deal, so each section component gets a plain useState-shaped setter. */
 function makeSectionSetter<K extends keyof Deal>(
@@ -31,7 +33,12 @@ function makeSectionSetter<K extends keyof Deal>(
 }
 
 function App() {
-  const [deal, setDeal, clearDraft] = useDraftState(DRAFT_KEY, EMPTY_DEAL);
+  const [deal, setDeal] = useDraftState(DRAFT_KEY, EMPTY_DEAL);
+  const [settings, setSettings] = useDraftState(SETTINGS_KEY, DEFAULT_SETTINGS);
+
+  function startNewDeal() {
+    setDeal(dealFromSettings(settings));
+  }
 
   const setProperty = makeSectionSetter(setDeal, "property");
   const setFinancing = makeSectionSetter(setDeal, "financing");
@@ -60,10 +67,11 @@ function App() {
     <TooltipProvider>
       <div className="min-h-svh flex flex-col">
         <header className="border-b border-border">
-          <div className="mx-auto max-w-3xl px-4 py-4">
+          <div className="mx-auto flex max-w-3xl items-center justify-between px-4 py-4">
             <span className="text-lg font-semibold tracking-tight">
               Deal Analyzer
             </span>
+            <SettingsDialog value={settings} onChange={setSettings} />
           </div>
         </header>
 
@@ -90,8 +98,8 @@ function App() {
                       })}
                 </p>
               </div>
-              <Button variant="outline" onClick={clearDraft}>
-                Clear draft
+              <Button variant="outline" onClick={startNewDeal}>
+                New Deal
               </Button>
             </div>
 
