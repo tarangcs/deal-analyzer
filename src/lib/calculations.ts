@@ -244,6 +244,10 @@ export function dealQualityFlag(
 }
 
 export interface DealSummary {
+  totalFinancing: number;
+  totalHolding: number;
+  totalBuying: number;
+  totalSelling: number;
   netProfit: number;
   costPerSqFt: number;
   downPayment: number;
@@ -310,6 +314,10 @@ export function summarizeDeal(deal: Deal): DealSummary {
   const quality = dealQualityFlag(roi, numOrZero(deal.roiThresholdPercent));
 
   return {
+    totalFinancing,
+    totalHolding,
+    totalBuying,
+    totalSelling,
     netProfit,
     costPerSqFt,
     downPayment,

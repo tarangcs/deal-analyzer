@@ -35,12 +35,33 @@ function formatDate(value: string): string {
   return Number.isNaN(d.getTime()) ? "—" : d.toLocaleDateString();
 }
 
-export function DealsList() {
+const MAX_COMPARE = 3;
+
+export function DealsList({
+  onOpenDeal,
+  onCompare,
+}: {
+  onOpenDeal: (record: DealRecord) => void;
+  onCompare: (records: DealRecord[]) => void;
+}) {
   const [deals, setDeals] = useState<DealRecord[] | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("All");
   const [sortBy, setSortBy] = useState<SortOption>("date");
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+
+  function toggleSelected(id: string) {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else if (next.size < MAX_COMPARE) {
+        next.add(id);
+      }
+      return next;
+    });
+  }
 
   async function load() {
     setLoadError(null);
@@ -136,17 +157,57 @@ export function DealsList() {
         </p>
       )}
 
+      {selectedIds.size > 0 && (
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border bg-muted/40 p-3">
+          <p className="text-sm text-muted-foreground">
+            {selectedIds.size} selected for comparison
+            {selectedIds.size < 2 ? " (pick at least 2)" : ""}
+            {selectedIds.size >= MAX_COMPARE ? ` (max ${MAX_COMPARE})` : ""}
+          </p>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={() => setSelectedIds(new Set())}>
+              Clear
+            </Button>
+            <Button
+              size="sm"
+              disabled={selectedIds.size < 2}
+              onClick={() =>
+                onCompare((deals ?? []).filter((d) => selectedIds.has(d.id)))
+              }
+            >
+              Compare
+            </Button>
+          </div>
+        </div>
+      )}
+
       <div className="space-y-3">
         {visible.map((d) => {
           const quality = qualityStyleFor(d.dealQuality);
+          const checked = selectedIds.has(d.id);
           return (
-            <div key={d.id} className="rounded-lg border border-border bg-card p-4">
+            <div
+              key={d.id}
+              onClick={() => onOpenDeal(d)}
+              className="cursor-pointer rounded-lg border border-border bg-card p-4 transition-colors hover:border-foreground/20"
+            >
               <div className="flex flex-wrap items-start justify-between gap-2">
-                <div>
-                  <p className="font-medium">{d.propertyAddress || "(no address)"}</p>
-                  <p className="text-sm text-muted-foreground">
-                    {d.evaluatorName || "—"} · {d.status || "—"} · {formatDate(d.date)}
-                  </p>
+                <div className="flex items-start gap-3">
+                  <input
+                    type="checkbox"
+                    checked={checked}
+                    disabled={!checked && selectedIds.size >= MAX_COMPARE}
+                    onClick={(e) => e.stopPropagation()}
+                    onChange={() => toggleSelected(d.id)}
+                    aria-label={`Select ${d.propertyAddress || "deal"} for comparison`}
+                    className="mt-1 size-4 accent-foreground"
+                  />
+                  <div>
+                    <p className="font-medium">{d.propertyAddress || "(no address)"}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {d.evaluatorName || "—"} · {d.status || "—"} · {formatDate(d.date)}
+                    </p>
+                  </div>
                 </div>
                 <span
                   className={`shrink-0 rounded-full border px-2.5 py-0.5 text-xs font-medium ${quality.className}`}

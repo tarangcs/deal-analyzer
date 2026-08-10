@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { withDefaults } from "./use-draft-state";
+import { withDefaults } from "./deep-merge";
 
 describe("withDefaults", () => {
   it("fills in a top-level section missing from an old draft", () => {

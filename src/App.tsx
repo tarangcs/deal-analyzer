@@ -7,10 +7,12 @@ import { TransactionCostsSection } from "@/components/deal-form/transaction-cost
 import { DealSummarySection } from "@/components/deal-form/deal-summary-section";
 import { SettingsDialog } from "@/components/deal-form/settings-dialog";
 import { DealsList } from "@/components/deals-list/deals-list";
+import { DealDetail } from "@/components/deals-list/deal-detail";
+import { DealComparison } from "@/components/deals-list/deal-comparison";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 import { useDraftState } from "@/hooks/use-draft-state";
-import { createDeal } from "@/lib/backend";
+import { createDeal, type DealRecord } from "@/lib/backend";
 import { numOrZero, purchaseRepairTotal, summarizeDeal } from "@/lib/calculations";
 import { DEFAULT_SETTINGS, EMPTY_DEAL, dealFromSettings, type Deal } from "@/lib/types";
 import { validatePropertyInfo } from "@/lib/validation";
@@ -36,14 +38,26 @@ function makeSectionSetter<K extends keyof Deal>(
 
 type SaveStatus = "idle" | "saving" | "saved" | "error";
 
-type View = "calculator" | "deals";
+type View = "calculator" | "deals" | "dealDetail" | "compare";
 
 function App() {
   const [view, setView] = useState<View>("calculator");
+  const [openDealRecord, setOpenDealRecord] = useState<DealRecord | null>(null);
+  const [compareRecords, setCompareRecords] = useState<DealRecord[]>([]);
   const [deal, setDeal] = useDraftState(DRAFT_KEY, EMPTY_DEAL);
   const [settings, setSettings] = useDraftState(SETTINGS_KEY, DEFAULT_SETTINGS);
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
   const [saveError, setSaveError] = useState<string | null>(null);
+
+  function openDeal(record: DealRecord) {
+    setOpenDealRecord(record);
+    setView("dealDetail");
+  }
+
+  function compareDeals(records: DealRecord[]) {
+    setCompareRecords(records);
+    setView("compare");
+  }
 
   function startNewDeal() {
     setDeal(dealFromSettings(settings));
@@ -129,7 +143,7 @@ function App() {
                   type="button"
                   onClick={() => setView("deals")}
                   className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
-                    view === "deals"
+                    view !== "calculator"
                       ? "bg-muted text-foreground"
                       : "text-muted-foreground hover:text-foreground"
                   }`}
@@ -142,13 +156,37 @@ function App() {
           </div>
         </header>
 
-        {view === "deals" ? (
+        {view === "deals" && (
           <main className="flex-1 px-4 py-8">
             <div className="mx-auto max-w-3xl">
-              <DealsList />
+              <DealsList onOpenDeal={openDeal} onCompare={compareDeals} />
             </div>
           </main>
-        ) : (
+        )}
+
+        {view === "dealDetail" && openDealRecord && (
+          <main className="flex-1 px-4 py-8">
+            <div className="mx-auto max-w-3xl">
+              <DealDetail
+                record={openDealRecord}
+                onBack={() => setView("deals")}
+              />
+            </div>
+          </main>
+        )}
+
+        {view === "compare" && (
+          <main className="flex-1 px-4 py-8">
+            <div className="mx-auto max-w-5xl">
+              <DealComparison
+                records={compareRecords}
+                onBack={() => setView("deals")}
+              />
+            </div>
+          </main>
+        )}
+
+        {view === "calculator" && (
         <main className="flex-1 px-4 py-8">
           <div className="mx-auto max-w-3xl space-y-6">
             <PropertySection

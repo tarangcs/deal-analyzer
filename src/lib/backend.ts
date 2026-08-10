@@ -1,4 +1,5 @@
-import type { Deal } from "./types";
+import { withDefaults } from "./deep-merge";
+import { EMPTY_DEAL, type Deal } from "./types";
 
 const API_URL = import.meta.env.VITE_APPS_SCRIPT_URL;
 
@@ -77,4 +78,14 @@ export async function listDeals(): Promise<DealRecord[]> {
     throw new Error(`Backend request failed: ${res.status}`);
   }
   return res.json();
+}
+
+/**
+ * Reconstructs a full Deal from a DealRecord's (possibly sparse or empty)
+ * `deal` JSON, so detail/comparison views can safely call summarizeDeal()
+ * and the section components' formatters without every field needing an
+ * existence check.
+ */
+export function toFullDeal(record: DealRecord): Deal {
+  return withDefaults(EMPTY_DEAL, record.deal);
 }
