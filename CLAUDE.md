@@ -1,8 +1,8 @@
-# Deal Analyzer
+# CBTE Deal Analyzer
 
-Shared web app for the real estate group to evaluate wholesale/flip deals,
-replacing `deal-analyzer-worksheet.xlsx`. Full build roadmap and step
-checklist: `ROADMAP.md` in this repo.
+Shared web app for the Charlotte Based Transaction Engineers to evaluate
+wholesale/flip deals, replacing `deal-analyzer-worksheet.xlsx`. Full build
+roadmap and step checklist: `ROADMAP.md` in this repo.
 
 ## Stack
 

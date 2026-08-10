@@ -146,7 +146,7 @@ function App() {
           <div className="mx-auto flex max-w-3xl items-center justify-between px-4 py-4">
             <div className="flex items-center gap-6">
               <span className="text-lg font-semibold tracking-tight">
-                Deal Analyzer
+                CBTE Deal Analyzer
               </span>
               <nav className="flex gap-1">
                 <button

@@ -1,8 +1,8 @@
-# Deal Analyzer — Build Roadmap
+# CBTE Deal Analyzer — Build Roadmap
 
 ## Context
 
-The real estate investing group needs a shared web app to replace the
+The Charlotte Based Transaction Engineers need a shared web app to replace the
 `deal-analyzer-worksheet.xlsx` spreadsheet for evaluating wholesale/flip
 deals. Two source documents exist in this folder:
 
