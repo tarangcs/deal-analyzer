@@ -125,7 +125,7 @@ the working agreement (one step per turn, model choice, `/cost` habits).
     deals" filter instead of real login). Test: list reflects what's
     actually in the sheet, including deals added manually in Sheets;
     filtering by status and searching by address both narrow correctly.
-11. **Deal detail + Comparison view** — open a saved deal, select 2–3
+11. **Deal detail + Comparison view** ✅ **Done.** — open a saved deal, select 2–3
     deals to compare side by side. Test with 3 distinct saved sample
     deals.
 12. **Edit + Delete/Archive a saved deal** — from the detail view, edit
