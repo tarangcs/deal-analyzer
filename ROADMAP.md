@@ -136,10 +136,18 @@ the working agreement (one step per turn, model choice, `/cost` habits).
 13. **Notes field per deal** ✅ **Done.** + empty/loading/error states polish.
 14. **Sensitivity check** ✅ **Done.** — ±10% ARV/repair swing shown on deal detail.
     Test against hand-computed ±10% values for the sample deal.
-15. **Visual & mobile polish pass** — typography, spacing, color system;
-    confirm numeric fields bring up the phone's number pad
+15. **Visual & mobile polish pass** ✅ **Done.** — typography, spacing, color
+    system; confirm numeric fields bring up the phone's number pad
     (`inputMode="decimal"`); responsive check on real phone viewport
-    sizes.
+    sizes. Found and fixed two dark-mode bugs during a full screenshot
+    audit (every view × light/dark × desktop/mobile): the shadcn
+    `@custom-variant dark` selector required a literal `.dark` class
+    that nothing in the app ever added, so dark mode never activated —
+    switched to `@media (prefers-color-scheme: dark)` since this app
+    has no manual theme toggle; and native form widgets (checkboxes,
+    date pickers) rendered light-only against the dark background —
+    fixed with `color-scheme: light dark` on `:root`. Also replaced the
+    default Vite favicon and removed the unused scaffold `icons.svg`.
 16. **Ship** — walk the group through it, save 1–2 real in-flight deals
     together as a live test.
 

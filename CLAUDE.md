@@ -44,6 +44,25 @@ a push to `app1` doesn't produce a new deployment within ~2 minutes, an
 empty commit (`git commit --allow-empty`) + push is a reliable
 workaround.
 
+## Gotcha: dark mode is OS-preference-only, not class-based
+
+This app has no manual theme toggle — dark mode should just follow the
+visitor's OS/browser preference. The shadcn scaffold's generated CSS
+assumed a class-based toggle instead (`@custom-variant dark (&:is(.dark
+*));` plus a `.dark { ... }` selector block), which needs a literal
+`.dark` class added to an ancestor element — nothing in this app ever
+adds one, so dark mode silently never activated regardless of system
+setting. Fixed in `src/index.css` by deleting the `@custom-variant`
+line and wrapping the dark variable values in
+`@media (prefers-color-scheme: dark) { :root { ... } }` instead. If a
+manual toggle is ever added later, this needs to flip back to the
+class-based approach.
+
+Relatedly: native form widgets (checkboxes, date pickers, scrollbars)
+default to light rendering even against a dark page background unless
+the page opts in via the `color-scheme` CSS property. `:root` now sets
+`color-scheme: light dark;` so those widgets pick the right variant.
+
 ## Commands
 
 - `npm run dev` — dev server
