@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   Card,
   CardContent,
@@ -6,7 +7,12 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { summarizeDeal } from "@/lib/calculations";
-import { toFullDeal, type DealRecord } from "@/lib/backend";
+import {
+  archiveDeal,
+  deleteDeal,
+  toFullDeal,
+  type DealRecord,
+} from "@/lib/backend";
 import { QUALITY_STYLES } from "@/lib/deal-quality-styles";
 import { money, percent } from "@/lib/format";
 
@@ -19,13 +25,23 @@ function Row({ label, value }: { label: string; value: string }) {
   );
 }
 
+type ActionStatus = "idle" | "working" | "error";
+
 export function DealDetail({
   record,
   onBack,
+  onEdit,
+  onChanged,
 }: {
   record: DealRecord;
   onBack: () => void;
+  onEdit: (record: DealRecord) => void;
+  /** Called after a successful archive/delete, so the caller can return to a fresh list. */
+  onChanged: () => void;
 }) {
+  const [status, setStatus] = useState<ActionStatus>("idle");
+  const [error, setError] = useState<string | null>(null);
+
   const deal = toFullDeal(record);
   const summary = summarizeDeal(deal);
   const qualityStyle = QUALITY_STYLES[summary.quality];
@@ -35,11 +51,70 @@ export function DealDetail({
     { label: "Misc. Mortgage", loan: deal.financing.miscMortgage },
   ].filter(({ loan }) => loan.amount !== "" && loan.amount !== 0);
 
+  async function handleArchive() {
+    setStatus("working");
+    setError(null);
+    try {
+      await archiveDeal(record.id, true);
+      onChanged();
+    } catch (err) {
+      setStatus("error");
+      setError(err instanceof Error ? err.message : "Couldn't archive this deal");
+    }
+  }
+
+  async function handleDelete() {
+    if (
+      !window.confirm(
+        `Delete "${record.propertyAddress || "this deal"}"? This can't be undone.`,
+      )
+    ) {
+      return;
+    }
+    setStatus("working");
+    setError(null);
+    try {
+      await deleteDeal(record.id);
+      onChanged();
+    } catch (err) {
+      setStatus("error");
+      setError(err instanceof Error ? err.message : "Couldn't delete this deal");
+    }
+  }
+
   return (
     <div className="space-y-6">
-      <Button variant="outline" onClick={onBack}>
-        ← Back to Deals
-      </Button>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <Button variant="outline" onClick={onBack}>
+          ← Back to Deals
+        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={() => onEdit(record)}>
+            Edit
+          </Button>
+          <Button
+            variant="outline"
+            onClick={handleArchive}
+            disabled={status === "working"}
+          >
+            Archive
+          </Button>
+          <Button
+            variant="outline"
+            onClick={handleDelete}
+            disabled={status === "working"}
+            className="text-destructive hover:text-destructive"
+          >
+            Delete
+          </Button>
+        </div>
+      </div>
+
+      {error && (
+        <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive">
+          {error}
+        </div>
+      )}
 
       <Card>
         <CardHeader>

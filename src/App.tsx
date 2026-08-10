@@ -12,7 +12,7 @@ import { DealComparison } from "@/components/deals-list/deal-comparison";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 import { useDraftState } from "@/hooks/use-draft-state";
-import { createDeal, type DealRecord } from "@/lib/backend";
+import { createDeal, toFullDeal, updateDeal, type DealRecord } from "@/lib/backend";
 import { numOrZero, purchaseRepairTotal, summarizeDeal } from "@/lib/calculations";
 import { DEFAULT_SETTINGS, EMPTY_DEAL, dealFromSettings, type Deal } from "@/lib/types";
 import { validatePropertyInfo } from "@/lib/validation";
@@ -48,6 +48,11 @@ function App() {
   const [settings, setSettings] = useDraftState(SETTINGS_KEY, DEFAULT_SETTINGS);
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
   const [saveError, setSaveError] = useState<string | null>(null);
+  // Set while editing an existing saved deal, so Save updates that row
+  // instead of creating a new one. Notes has no editable UI yet (Step
+  // 13) but is carried through so editing-and-resaving doesn't wipe it.
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [notes, setNotes] = useState("");
 
   function openDeal(record: DealRecord) {
     setOpenDealRecord(record);
@@ -62,6 +67,16 @@ function App() {
   function startNewDeal() {
     setDeal(dealFromSettings(settings));
     setSaveStatus("idle");
+    setEditingId(null);
+    setNotes("");
+  }
+
+  function editDeal(record: DealRecord) {
+    setDeal(toFullDeal(record));
+    setEditingId(record.id);
+    setNotes(record.notes);
+    setSaveStatus("idle");
+    setView("calculator");
   }
 
   async function handleSaveDeal() {
@@ -69,7 +84,7 @@ function App() {
     setSaveError(null);
     try {
       const summary = summarizeDeal(deal);
-      await createDeal({
+      const payload = {
         evaluatorName: deal.property.evaluatorName,
         propertyAddress: deal.property.propertyAddress,
         status: deal.property.status,
@@ -79,9 +94,14 @@ function App() {
         estimatedNetProfit: summary.netProfit,
         estimatedRoiPercent: summary.roi * 100,
         dealQuality: summary.quality,
-        notes: "",
+        notes,
         deal,
-      });
+      };
+      if (editingId) {
+        await updateDeal(editingId, payload);
+      } else {
+        await createDeal(payload);
+      }
       setSaveStatus("saved");
     } catch (err) {
       setSaveStatus("error");
@@ -170,6 +190,8 @@ function App() {
               <DealDetail
                 record={openDealRecord}
                 onBack={() => setView("deals")}
+                onEdit={editDeal}
+                onChanged={() => setView("deals")}
               />
             </div>
           </main>
@@ -189,6 +211,18 @@ function App() {
         {view === "calculator" && (
         <main className="flex-1 px-4 py-8">
           <div className="mx-auto max-w-3xl space-y-6">
+            {editingId && (
+              <div className="flex items-center justify-between rounded-lg border border-border bg-muted/40 p-3 text-sm">
+                <span>
+                  Editing a saved deal — Save updates it in place, it won't
+                  create a duplicate.
+                </span>
+                <Button variant="outline" size="sm" onClick={startNewDeal}>
+                  Cancel
+                </Button>
+              </div>
+            )}
+
             <PropertySection
               value={deal.property}
               onChange={setProperty}
@@ -252,7 +286,10 @@ function App() {
             <div className="flex items-center justify-between rounded-lg border border-border bg-card p-4">
               <p className="text-sm text-muted-foreground">
                 {saveStatus === "saving" && "Saving…"}
-                {saveStatus === "saved" && "Saved to the shared deals list."}
+                {saveStatus === "saved" &&
+                  (editingId
+                    ? "Updated in the shared deals list."
+                    : "Saved to the shared deals list.")}
                 {saveStatus === "error" &&
                   `Couldn't save: ${saveError ?? "unknown error"}`}
                 {saveStatus === "idle" &&
@@ -264,7 +301,11 @@ function App() {
                 onClick={handleSaveDeal}
                 disabled={hasErrors || saveStatus === "saving"}
               >
-                {saveStatus === "saving" ? "Saving…" : "Save Deal"}
+                {saveStatus === "saving"
+                  ? "Saving…"
+                  : editingId
+                    ? "Update Deal"
+                    : "Save Deal"}
               </Button>
             </div>
           </div>

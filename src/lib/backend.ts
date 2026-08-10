@@ -45,6 +45,27 @@ export async function createDeal(
   return result as { ok: boolean; id: string };
 }
 
+export async function updateDeal(
+  id: string,
+  payload: CreateDealPayload,
+): Promise<{ ok: boolean }> {
+  const result = await postAction({ action: "update", id, ...payload });
+  return result as { ok: boolean };
+}
+
+export async function archiveDeal(
+  id: string,
+  archived: boolean,
+): Promise<{ ok: boolean }> {
+  const result = await postAction({ action: "archive", id, archived });
+  return result as { ok: boolean };
+}
+
+export async function deleteDeal(id: string): Promise<{ ok: boolean }> {
+  const result = await postAction({ action: "delete", id });
+  return result as { ok: boolean };
+}
+
 /**
  * A saved deal as returned by the backend's list endpoint. Numeric-ish
  * fields are typed loosely (number | string) because rows added by hand

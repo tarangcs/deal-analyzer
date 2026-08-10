@@ -11,7 +11,12 @@
       "Bash(curl -s -o /dev/null -w \"HTTP %{http_code}\\\\n\" https://deal-analyzer-app-1.vercel.app/)",
       "Bash(curl -s https://deal-analyzer-app-1.vercel.app/)",
       "Bash(node /Users/surya/gitsource/deal-analyzer/.check-live.mjs)",
-      "Bash"
+      "Bash",
+      "Bash(python3 -c ' *)",
+      "Bash(curl -sL -X POST https://script.google.com/macros/s/AKfycbwqRJ-jeE4wUjVIVYNjBk2EMgbfGoz3e4JTHxcaNwcvFWQxDgPlA6XrITyX15PJIdklAA/exec -H 'Content-Type: text/plain' -d '{ *)",
+      "Bash(python3 -c \"import json,sys; [print\\(r['id']\\) for r in json.load\\(sys.stdin\\) if r['propertyAddress']=='500 Archive Test Ln, Editville']\")",
+      "Bash(python3 -c \"import json,sys; [print\\(r['id']\\) for r in json.load\\(sys.stdin\\) if r['propertyAddress']=='600 Delete Test Blvd, Editville']\")",
+      "Bash(node /Users/surya/gitsource/deal-analyzer/.check5.mjs)"
     ]
   }
 }
