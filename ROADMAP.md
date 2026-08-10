@@ -95,7 +95,7 @@ the working agreement (one step per turn, model choice, `/cost` habits).
    carry forward into every input section added in Steps 3–7. Test:
    enter the sample deal's inputs, confirm Purchase+Repair total is
    correct; kill the tab mid-entry and confirm the draft reloads.
-3. **Financing Costs section** — up to 3 mortgage/lien slots (amount,
+3. **Financing Costs section** ✅ **Done.** — up to 3 mortgage/lien slots (amount,
    points, interest rate) with computed points cost, interest cost, and
    totals. Test against the $6,266.67 total financing figure.
 4. **Holding Costs section** — taxes, HOA, insurance, utilities (gas/
