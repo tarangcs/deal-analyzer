@@ -134,7 +134,7 @@ the working agreement (one step per turn, model choice, `/cost` habits).
     repair cost, confirm the Sheet row updates in place and MAO/ROI
     recompute; delete a test deal, confirm it's gone from the list.
 13. **Notes field per deal** ✅ **Done.** + empty/loading/error states polish.
-14. **Sensitivity check** — ±10% ARV/repair swing shown on deal detail.
+14. **Sensitivity check** ✅ **Done.** — ±10% ARV/repair swing shown on deal detail.
     Test against hand-computed ±10% values for the sample deal.
 15. **Visual & mobile polish pass** — typography, spacing, color system;
     confirm numeric fields bring up the phone's number pad
